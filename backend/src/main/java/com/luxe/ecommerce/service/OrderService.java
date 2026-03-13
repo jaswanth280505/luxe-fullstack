@@ -161,7 +161,7 @@ public class OrderService {
             OrderDto.OrderItemResponse ir = new OrderDto.OrderItemResponse();
             ir.setProductId(item.getProduct().getId());
             ir.setProductName(item.getProduct().getName());
-            ir.setProductImage(item.getProduct().getImageUrl());
+            ir.setProductImage(item.getProduct().getMainImageUrl());
             ir.setQuantity(item.getQuantity());
             ir.setPrice(item.getPrice());
             return ir;

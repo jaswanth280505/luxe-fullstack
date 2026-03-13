@@ -36,6 +36,7 @@ public class Product {
     private String category;
     private String brand;
     private String sku;
+    private String mainImageUrl;
 
     @Column(nullable = false)
     private boolean active = true;

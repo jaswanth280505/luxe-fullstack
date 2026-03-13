@@ -75,7 +75,7 @@ public class CartService {
             r.setId(item.getId());
             r.setProductId(item.getProduct().getId());
             r.setProductName(item.getProduct().getName());
-            r.setProductImage(item.getProduct().getImageUrl());
+            r.setProductImage(item.getProduct().getMainImageUrl());
             r.setPrice(item.getProduct().getPrice());
             r.setQuantity(item.getQuantity());
             r.setSubtotal(item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
