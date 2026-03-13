@@ -11,7 +11,7 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const page = parseInt(searchParams.get('page') || '0');
+  const page = Number.parseInt(searchParams.get('page') || '0', 10);
   const category = searchParams.get('category') || '';
   const search = searchParams.get('search') || '';
   const sortBy = searchParams.get('sortBy') || 'createdAt';
@@ -29,10 +29,21 @@ export default function ProductsPage() {
       .finally(() => setLoading(false));
   }, [page, category, search, sortBy, sortDir]);
 
-  const setParam = (key, value) => {
+  const updateParams = (updates, { resetPage = true } = {}) => {
     const p = new URLSearchParams(searchParams);
-    if (value) p.set(key, value); else p.delete(key);
-    p.set('page', '0');
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        p.set(key, String(value));
+      } else {
+        p.delete(key);
+      }
+    });
+
+    if (resetPage && !Object.prototype.hasOwnProperty.call(updates, 'page')) {
+      p.set('page', '0');
+    }
+
     setSearchParams(p);
   };
 
@@ -56,13 +67,13 @@ export default function ProductsPage() {
         <aside className="w-full md:w-56 shrink-0">
           <div className="card-luxe p-4 mb-4">
             <h3 className="font-sans text-xs tracking-widest uppercase text-gold-500 mb-4">Categories</h3>
-            <button onClick={() => setParam('category', '')}
+            <button onClick={() => updateParams({ category: '' })}
               className={`block w-full text-left font-sans text-sm py-2 px-3 mb-1 transition-colors rounded-sm
                 ${!category ? 'bg-gold-500/10 text-gold-500' : 'text-gray-400 hover:text-white'}`}>
               All Products
             </button>
             {categories.map(cat => (
-              <button key={cat} onClick={() => setParam('category', cat)}
+              <button key={cat} onClick={() => updateParams({ category: cat })}
                 className={`block w-full text-left font-sans text-sm py-2 px-3 mb-1 transition-colors rounded-sm
                   ${category === cat ? 'bg-gold-500/10 text-gold-500' : 'text-gray-400 hover:text-white'}`}>
                 {cat}
@@ -80,7 +91,7 @@ export default function ProductsPage() {
               { label: 'Top Rated', sortBy: 'rating', sortDir: 'desc' },
             ].map(opt => (
               <button key={opt.label}
-                onClick={() => { setParam('sortBy', opt.sortBy); setParam('sortDir', opt.sortDir); }}
+                onClick={() => updateParams({ sortBy: opt.sortBy, sortDir: opt.sortDir })}
                 className={`block w-full text-left font-sans text-sm py-2 px-3 mb-1 transition-colors rounded-sm
                   ${sortBy === opt.sortBy && sortDir === opt.sortDir ? 'bg-gold-500/10 text-gold-500' : 'text-gray-400 hover:text-white'}`}>
                 {opt.label}
@@ -112,7 +123,7 @@ export default function ProductsPage() {
           {totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-10">
               {Array.from({ length: totalPages }, (_, i) => (
-                <button key={i} onClick={() => setParam('page', String(i))}
+                <button key={i} onClick={() => updateParams({ page: i }, { resetPage: false })}
                   className={`w-8 h-8 font-sans text-sm transition-colors
                     ${page === i ? 'bg-gold-500 text-luxe-black' : 'border border-luxe-border text-gray-400 hover:border-gold-500 hover:text-gold-500'}`}>
                   {i + 1}
