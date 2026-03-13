@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +59,25 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    @Transactional
+    public boolean upsertBySku(ProductDto dto) {
+        Product product = null;
+        boolean created = true;
+
+        if (dto.getSku() != null && !dto.getSku().isBlank()) {
+            product = productRepository.findBySku(dto.getSku().trim()).orElse(null);
+            created = product == null;
+        }
+
+        if (product == null) {
+            product = new Product();
+        }
+
+        mapToEntity(dto, product);
+        productRepository.save(product);
+        return created;
+    }
+
     public void deleteProduct(Long id) {
         Product product = getById(id);
         product.setActive(false);
@@ -73,24 +93,32 @@ public class ProductService {
         product.setStock(dto.getStock());
         product.setCategory(dto.getCategory());
         product.setBrand(dto.getBrand());
-        product.setSku(dto.getSku());
+        product.setSku(dto.getSku() == null ? null : dto.getSku().trim());
         product.setMainImageUrl(dto.getMainImageUrl());
         product.setActive(dto.isActive());
+        if (dto.getRating() != null) {
+            product.setRating(dto.getRating());
+        }
+        if (dto.getReviewCount() != null) {
+            product.setReviewCount(dto.getReviewCount());
+        }
 
         if (dto.getImages() != null) {
 
             List<ProductImage> images = dto.getImages()
                     .stream()
+                    .map(url -> url == null ? null : url.trim())
+                    .filter(url -> url != null && !url.isBlank())
                     .map(url -> ProductImage.builder()
                             .imageUrl(url)
                             .product(product)
                             .build())
-                    .toList();
+                    .collect(Collectors.toList());
 
             product.setImages(images);
 
-            if ((product.getMainImageUrl() == null || product.getMainImageUrl().isBlank()) && !dto.getImages().isEmpty()) {
-                product.setMainImageUrl(dto.getImages().get(0));
+            if ((product.getMainImageUrl() == null || product.getMainImageUrl().isBlank()) && !images.isEmpty()) {
+                product.setMainImageUrl(images.get(0).getImageUrl());
             }
         }
 

@@ -59,6 +59,11 @@ export const orderApi = {
 // Admin
 export const adminApi = {
   getStats: () => api.get('/admin/stats'),
+  importProductsCsv: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/admin/products/import-csv', formData);
+  },
 };
 
 export default api;
