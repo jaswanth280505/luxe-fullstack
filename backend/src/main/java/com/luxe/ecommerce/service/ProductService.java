@@ -55,16 +55,30 @@ public class ProductService {
     }
 
     private Product mapToEntity(ProductDto dto, Product product) {
+
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
         product.setOriginalPrice(dto.getOriginalPrice());
         product.setStock(dto.getStock());
-        product.setImageUrl(dto.getImageUrl());
         product.setCategory(dto.getCategory());
         product.setBrand(dto.getBrand());
         product.setSku(dto.getSku());
         product.setActive(dto.isActive());
+
+        if (dto.getImages() != null) {
+
+            List<ProductImage> images = dto.getImages()
+                    .stream()
+                    .map(url -> ProductImage.builder()
+                            .imageUrl(url)
+                            .product(product)
+                            .build())
+                    .toList();
+
+            product.setImages(images);
+        }
+
         return product;
     }
 }

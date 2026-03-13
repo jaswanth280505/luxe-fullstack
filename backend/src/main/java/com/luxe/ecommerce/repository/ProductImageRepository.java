@@ -8,18 +8,22 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+package com.luxe.ecommerce.repository;
 
-public interface ProductRepository extends JpaRepository<Product, Long> {
+import com.luxe.ecommerce.model.ProductImage;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ProductImageRepository extends JpaRepository<ProductImage, Long> {
 
     Page<Product> findByActiveTrue(Pageable pageable);
 
     Page<Product> findByCategoryAndActiveTrue(String category, Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.active = true AND " +
-           "(LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-           "LOWER(p.description) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-           "LOWER(p.brand) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-           "LOWER(p.category) LIKE LOWER(CONCAT('%', :q, '%')))")
+            "(LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+            "LOWER(p.description) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+            "LOWER(p.brand) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+            "LOWER(p.category) LIKE LOWER(CONCAT('%', :q, '%')))")
     Page<Product> searchProducts(@Param("q") String query, Pageable pageable);
 
     List<String> findDistinctCategoryByActiveTrue();
