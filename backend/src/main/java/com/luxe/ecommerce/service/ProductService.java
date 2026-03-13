@@ -39,24 +39,24 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Product getById(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-        return prepareProductForResponse(product);
+        return prepareProductForResponse(findProductEntity(id));
     }
 
     public List<String> getAllCategories() {
         return productRepository.findAllCategories();
     }
 
+    @Transactional
     public Product createProduct(ProductDto dto) {
         Product product = mapToEntity(dto, new Product());
-        return productRepository.save(product);
+        return prepareProductForResponse(productRepository.save(product));
     }
 
+    @Transactional
     public Product updateProduct(Long id, ProductDto dto) {
-        Product product = getById(id);
+        Product product = findProductEntity(id);
         mapToEntity(dto, product);
-        return productRepository.save(product);
+        return prepareProductForResponse(productRepository.save(product));
     }
 
     @Transactional
@@ -78,10 +78,15 @@ public class ProductService {
         return created;
     }
 
+    @Transactional
     public void deleteProduct(Long id) {
-        Product product = getById(id);
+        Product product = findProductEntity(id);
         product.setActive(false);
-        productRepository.save(product);
+    }
+
+    private Product findProductEntity(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
     private Product mapToEntity(ProductDto dto, Product product) {
