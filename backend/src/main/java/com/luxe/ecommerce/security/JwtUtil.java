@@ -18,6 +18,12 @@ public class JwtUtil {
     private long jwtExpiration;
 
     private Key getSigningKey() {
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException("JWT secret is not configured");
+        }
+        if (jwtSecret.length() < 32) {
+            throw new IllegalStateException("JWT secret must be at least 32 characters");
+        }
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 

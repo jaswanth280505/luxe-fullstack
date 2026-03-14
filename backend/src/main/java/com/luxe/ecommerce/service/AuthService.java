@@ -179,7 +179,17 @@ public class AuthService {
     }
 
     private AuthDto.AuthResponse buildAuthResponse(User user) {
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token;
+        try {
+            token = jwtUtil.generateToken(user.getEmail());
+        } catch (Exception ex) {
+            log.error("JWT generation failed for user {}", user.getEmail(), ex);
+            throw new ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "Authentication service is misconfigured (JWT secret).",
+                    ex);
+        }
+
         String sellerApprovalStatus = sellerProfileRepository.findByUser(user)
                 .map(profile -> profile.getStatus().name())
                 .orElse(null);
