@@ -29,6 +29,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final GoogleTokenVerifierService googleTokenVerifierService;
+    private final ClerkIdentityService clerkIdentityService;
 
     @Transactional
     public AuthDto.AuthResponse register(AuthDto.RegisterRequest request) {
@@ -68,14 +69,34 @@ public class AuthService {
 
     @Transactional
     public AuthDto.AuthResponse googleAuth(AuthDto.GoogleAuthRequest request) {
-        GoogleTokenVerifierService.GoogleUserProfile googleProfile =
-                googleTokenVerifierService.verify(request.getCredential());
+        GoogleTokenVerifierService.GoogleUserProfile googleProfile = googleTokenVerifierService
+                .verify(request.getCredential());
 
         User user = userRepository.findByGoogleId(googleProfile.getGoogleId())
                 .orElseGet(() -> resolveGoogleUser(googleProfile));
 
         if (!user.isEnabled()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User account is disabled");
+        }
+
+        return buildAuthResponse(user);
+    }
+
+    @Transactional
+    public AuthDto.AuthResponse exchangeClerkSession(AuthDto.ClerkExchangeRequest request) {
+        ClerkIdentityService.VerifiedClerkUser clerkUser = clerkIdentityService.verify(request.getClerkToken());
+
+        User user = userRepository.findByClerkId(clerkUser.clerkUserId())
+                .orElseGet(() -> userRepository.findByEmail(clerkUser.email())
+                        .map(existingUser -> linkExistingClerkUser(existingUser, clerkUser))
+                        .orElseGet(() -> createClerkUser(clerkUser, request.getRequestedAccountType())));
+
+        if (!user.isEnabled()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User account is disabled");
+        }
+
+        if (user.getRole() == Role.SELLER) {
+            sellerProfileRepository.findByUser(user).orElseGet(() -> createSellerProfile(user));
         }
 
         return buildAuthResponse(user);
@@ -89,7 +110,8 @@ public class AuthService {
 
     private User linkExistingUser(User existingUser, GoogleTokenVerifierService.GoogleUserProfile googleProfile) {
         if (existingUser.getGoogleId() != null && !existingUser.getGoogleId().equals(googleProfile.getGoogleId())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "That email is already linked to another Google account");
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "That email is already linked to another Google account");
         }
 
         if ((existingUser.getGoogleId() == null || existingUser.getGoogleId().isBlank())
@@ -121,6 +143,38 @@ public class AuthService {
         return userRepository.save(user);
     }
 
+    private User linkExistingClerkUser(User existingUser, ClerkIdentityService.VerifiedClerkUser clerkUser) {
+        if (existingUser.getClerkId() != null && !existingUser.getClerkId().equals(clerkUser.clerkUserId())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "That email is already linked to another Clerk account");
+        }
+
+        existingUser.setClerkId(clerkUser.clerkUserId());
+        existingUser.setFullName(clerkUser.fullName());
+        return userRepository.save(existingUser);
+    }
+
+    private User createClerkUser(ClerkIdentityService.VerifiedClerkUser clerkUser, String requestedAccountType) {
+        Role role = resolveRequestedClerkRole(requestedAccountType);
+
+        User user = User.builder()
+                .email(clerkUser.email())
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .fullName(clerkUser.fullName())
+                .clerkId(clerkUser.clerkUserId())
+                .role(role)
+                .enabled(true)
+                .build();
+
+        User savedUser = userRepository.save(user);
+
+        if (role == Role.SELLER) {
+            createSellerProfile(savedUser);
+        }
+
+        return savedUser;
+    }
+
     private String resolveFullName(GoogleTokenVerifierService.GoogleUserProfile googleProfile) {
         if (googleProfile.getFullName() != null && !googleProfile.getFullName().isBlank()) {
             return googleProfile.getFullName().trim();
@@ -131,6 +185,10 @@ public class AuthService {
     }
 
     private Role resolveRequestedRole(String accountType) {
+        return "SELLER".equalsIgnoreCase(accountType) ? Role.SELLER : Role.USER;
+    }
+
+    private Role resolveRequestedClerkRole(String accountType) {
         return "SELLER".equalsIgnoreCase(accountType) ? Role.SELLER : Role.USER;
     }
 

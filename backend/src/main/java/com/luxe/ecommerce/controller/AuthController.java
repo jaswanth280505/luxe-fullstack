@@ -28,4 +28,10 @@ public class AuthController {
     public ResponseEntity<AuthDto.AuthResponse> googleAuth(@Valid @RequestBody AuthDto.GoogleAuthRequest request) {
         return ResponseEntity.ok(authService.googleAuth(request));
     }
+
+    @PostMapping("/clerk/exchange")
+    public ResponseEntity<AuthDto.AuthResponse> exchangeClerk(
+            @Valid @RequestBody AuthDto.ClerkExchangeRequest request) {
+        return ResponseEntity.ok(authService.exchangeClerkSession(request));
+    }
 }

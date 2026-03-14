@@ -9,9 +9,11 @@ public class AuthDto {
 
     @Data
     public static class RegisterRequest {
-        @NotBlank @Email
+        @NotBlank
+        @Email
         private String email;
-        @NotBlank @Size(min = 6)
+        @NotBlank
+        @Size(min = 6)
         private String password;
         @NotBlank
         private String fullName;
@@ -21,7 +23,8 @@ public class AuthDto {
 
     @Data
     public static class LoginRequest {
-        @NotBlank @Email
+        @NotBlank
+        @Email
         private String email;
         @NotBlank
         private String password;
@@ -31,6 +34,13 @@ public class AuthDto {
     public static class GoogleAuthRequest {
         @NotBlank
         private String credential;
+    }
+
+    @Data
+    public static class ClerkExchangeRequest {
+        @NotBlank
+        private String clerkToken;
+        private String requestedAccountType;
     }
 
     @Data
