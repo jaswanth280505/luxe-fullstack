@@ -95,6 +95,19 @@
   background-color: #F8F5EF !important;
 }
 
+.home-hero-dark-base {
+  background: linear-gradient(135deg, #0A0A0A 0%, #111111 55%, #0A0A0A 100%);
+}
+
+.home-hero-light-base {
+  background: linear-gradient(140deg, #f8f2e6 0%, #efe2ca 55%, #f7eedc 100%);
+}
+
+.home-hero-pattern {
+  background-image: radial-gradient(circle at 25% 40%, rgba(201, 168, 76, 0.10) 0%, transparent 56%),
+    radial-gradient(circle at 76% 50%, rgba(201, 168, 76, 0.07) 0%, transparent 62%);
+}
+
 [data-theme='light'] .bg-luxe-card {
   background-color: var(--luxe-card-bg) !important;
 }
