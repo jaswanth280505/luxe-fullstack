@@ -9,6 +9,7 @@ import com.luxe.ecommerce.repository.SellerProfileRepository;
 import com.luxe.ecommerce.repository.UserRepository;
 import com.luxe.ecommerce.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +23,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -50,14 +52,21 @@ public class AuthService {
                     .email(normalizedEmail)
                     .password(passwordEncoder.encode(request.getPassword()))
                     .fullName(normalizedFullName)
-                    .phone(request.getPhone())
+                    .phone(request.getPhone() == null ? "" : request.getPhone().trim())
+                    .address("")
                     .role(role)
                     .enabled(true)
                     .build();
             userRepository.save(user);
 
             if (role == Role.SELLER) {
-                createSellerProfile(user);
+                try {
+                    createSellerProfile(user);
+                } catch (Exception ex) {
+                    // Keep account creation successful even if legacy seller profile schema
+                    // differs.
+                    log.warn("Seller profile creation failed for user {}: {}", user.getEmail(), ex.getMessage());
+                }
             }
 
             return buildAuthResponse(user);
@@ -127,6 +136,8 @@ public class AuthService {
                 .email(googleProfile.getEmail())
                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                 .fullName(resolveFullName(googleProfile))
+                .phone("")
+                .address("")
                 .googleId(googleProfile.getGoogleId())
                 .role(Role.USER)
                 .enabled(true)
@@ -152,7 +163,18 @@ public class AuthService {
         return sellerProfileRepository.save(SellerProfile.builder()
                 .user(user)
                 .businessName(user.getFullName() == null ? "" : user.getFullName().trim())
+                .businessType("")
+                .taxId("")
+                .website("")
+                .description("")
+                .address("")
+                .documentUrl("")
                 .status(SellerApprovalStatus.DRAFT)
+                .aiReviewScore(0)
+                .aiReviewSummary("")
+                .aiReviewIssues("")
+                .aiRecommendation("")
+                .adminNotes("")
                 .build());
     }
 
