@@ -476,15 +476,6 @@ npm run dev
 - Swagger UI: `http://localhost:8080/api/swagger-ui.html`
 - CSV template: `http://localhost:5173/product-import-template.csv`
 
-### Clerk Configuration
-
-Set these environment variables before using Clerk authentication:
-
-- Frontend: `VITE_CLERK_PUBLISHABLE_KEY`
-- Backend: `CLERK_ISSUER`
-- Backend: `CLERK_JWKS_URL`
-- Backend: `CLERK_SECRET_KEY`
-
 ### Google Sign-In Configuration
 
 To enable Google login and registration, configure the same Google OAuth client in both apps:

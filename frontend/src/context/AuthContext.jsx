@@ -1,16 +1,13 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 import { authApi } from '../services/api';
 import toast from 'react-hot-toast';
-import { consumePendingAccountType, getClerkInstance, getClerkPublishableKey } from '../utils/clerkClient';
 
 const AuthContext = createContext(null);
-const hasClerk = Boolean(getClerkPublishableKey());
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem('luxe_user')); } catch { return null; }
   });
-  const [clerkReady, setClerkReady] = useState(!hasClerk);
 
   const storeSession = useCallback((authResponse) => {
     const { token, ...userData } = authResponse;
@@ -19,94 +16,6 @@ export function AuthProvider({ children }) {
     setUser(userData);
     return userData;
   }, []);
-
-  const clearSession = useCallback((showToast = false) => {
-    localStorage.removeItem('luxe_token');
-    localStorage.removeItem('luxe_user');
-    setUser(null);
-    if (showToast) {
-      toast.success('Logged out successfully');
-    }
-  }, []);
-
-  const syncClerkSession = useCallback(async (requestedAccountType) => {
-    const clerk = await getClerkInstance();
-    if (!clerk?.session || !clerk.isSignedIn) {
-      clearSession();
-      return null;
-    }
-
-    const clerkToken = await clerk.session.getToken();
-    if (!clerkToken) {
-      clearSession();
-      return null;
-    }
-
-    const res = await authApi.clerkExchange({ clerkToken, requestedAccountType });
-    return storeSession(res.data);
-  }, [clearSession, storeSession]);
-
-  useEffect(() => {
-    if (!hasClerk) {
-      return undefined;
-    }
-
-    let active = true;
-    let removeListener = null;
-    let removeFocusListener = null;
-
-    (async () => {
-      try {
-        const clerk = await getClerkInstance();
-        if (!active) {
-          return;
-        }
-
-        setClerkReady(true);
-
-        const refresh = async () => {
-          if (!active) {
-            return;
-          }
-
-          if (clerk?.isSignedIn) {
-            const requestedAccountType = !user ? consumePendingAccountType() : undefined;
-            await syncClerkSession(requestedAccountType);
-          } else {
-            clearSession();
-          }
-        };
-
-        await refresh();
-
-        if (typeof clerk?.addListener === 'function') {
-          removeListener = clerk.addListener(() => {
-            refresh().catch(() => {});
-          });
-        }
-
-        const handleFocus = () => {
-          refresh().catch(() => {});
-        };
-        window.addEventListener('focus', handleFocus);
-        removeFocusListener = () => window.removeEventListener('focus', handleFocus);
-      } catch (error) {
-        if (active) {
-          setClerkReady(true);
-        }
-      }
-    })();
-
-    return () => {
-      active = false;
-      if (typeof removeListener === 'function') {
-        removeListener();
-      }
-      if (typeof removeFocusListener === 'function') {
-        removeFocusListener();
-      }
-    };
-  }, [clearSession, syncClerkSession, user]);
 
   const login = useCallback(async (email, password) => {
     const res = await authApi.login({ email, password });
@@ -124,24 +33,19 @@ export function AuthProvider({ children }) {
   }, [storeSession]);
 
   const logout = useCallback(() => {
-    if (hasClerk) {
-      getClerkInstance()
-        .then((clerk) => clerk?.signOut())
-        .catch(() => {});
-    }
-    clearSession(true);
-  }, [clearSession]);
+    localStorage.removeItem('luxe_token');
+    localStorage.removeItem('luxe_user');
+    setUser(null);
+    toast.success('Logged out successfully');
+  }, []);
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        clerkEnabled: hasClerk,
-        clerkReady,
         login,
         register,
         googleLogin,
-        syncClerkSession,
         logout,
         isAdmin: user?.role === 'ADMIN',
         isSeller: user?.role === 'SELLER',

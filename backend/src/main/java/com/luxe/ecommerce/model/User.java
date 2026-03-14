@@ -6,11 +6,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class User {
 
     @Id
@@ -32,9 +28,6 @@ public class User {
     @Column(unique = true)
     private String googleId;
 
-    @Column(unique = true)
-    private String clerkId;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.USER;
@@ -48,13 +41,8 @@ public class User {
     private LocalDateTime updatedAt;
 
     @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
+    protected void onCreate() { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now(); }
 
     @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+    protected void onUpdate() { updatedAt = LocalDateTime.now(); }
 }
