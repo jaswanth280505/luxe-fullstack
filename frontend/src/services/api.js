@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-const API_URL =
-  import.meta.env.VITE_API_BASE_URL || '/api';
+const isVercelHost = typeof window !== 'undefined' && window.location.hostname.endsWith('vercel.app');
+const API_URL = isVercelHost
+  ? '/api'
+  : (import.meta.env.VITE_API_BASE_URL || '/api');
 
 const api = axios.create({ baseURL: API_URL });
 
