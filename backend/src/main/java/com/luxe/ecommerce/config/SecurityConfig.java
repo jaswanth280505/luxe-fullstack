@@ -27,6 +27,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Configuration
 @EnableWebSecurity
@@ -67,9 +68,18 @@ public class SecurityConfig {
         public CorsConfigurationSource corsConfigurationSource() {
 
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOriginPatterns(Arrays.stream(allowedOrigins.split(","))
+                List<String> baseOrigins = List.of(
+                                "https://*.vercel.app",
+                                "https://luxe.vercel.app",
+                                "http://localhost:5173");
+
+                List<String> configuredOrigins = Arrays.stream(allowedOrigins.split(","))
                                 .map(String::trim)
                                 .filter(origin -> !origin.isBlank())
+                                .toList();
+
+                config.setAllowedOriginPatterns(Stream.concat(baseOrigins.stream(), configuredOrigins.stream())
+                                .distinct()
                                 .toList());
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));

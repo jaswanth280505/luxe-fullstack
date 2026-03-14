@@ -33,7 +33,7 @@ public class AuthService {
     @Transactional
     public AuthDto.AuthResponse register(AuthDto.RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
         }
 
         Role role = resolveRequestedRole(request.getAccountType());
@@ -68,8 +68,8 @@ public class AuthService {
 
     @Transactional
     public AuthDto.AuthResponse googleAuth(AuthDto.GoogleAuthRequest request) {
-        GoogleTokenVerifierService.GoogleUserProfile googleProfile =
-                googleTokenVerifierService.verify(request.getCredential());
+        GoogleTokenVerifierService.GoogleUserProfile googleProfile = googleTokenVerifierService
+                .verify(request.getCredential());
 
         User user = userRepository.findByGoogleId(googleProfile.getGoogleId())
                 .orElseGet(() -> resolveGoogleUser(googleProfile));
@@ -89,7 +89,8 @@ public class AuthService {
 
     private User linkExistingUser(User existingUser, GoogleTokenVerifierService.GoogleUserProfile googleProfile) {
         if (existingUser.getGoogleId() != null && !existingUser.getGoogleId().equals(googleProfile.getGoogleId())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "That email is already linked to another Google account");
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "That email is already linked to another Google account");
         }
 
         if ((existingUser.getGoogleId() == null || existingUser.getGoogleId().isBlank())
