@@ -35,7 +35,7 @@ import java.util.List;
 public class SecurityConfig {
 
         private final UserRepository userRepository;
-        @Value("${app.cors.allowed-origins:https://luxe.vercel.app,http://localhost:5173}")
+        @Value("${app.cors.allowed-origins:https://luxe.vercel.app,https://*.vercel.app,http://localhost:5173}")
         private String allowedOrigins;
 
         @Bean

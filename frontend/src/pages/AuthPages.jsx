@@ -76,7 +76,7 @@ function ClerkPanel({ mode }) {
   if (!clerkEnabled) {
     return (
       <div className="rounded-sm border border-red-500/40 bg-red-500/10 px-4 py-3 font-sans text-sm text-red-200">
-        Set <span className="font-semibold">VITE_CLERK_PUBLISHABLE_KEY</span> to enable Clerk authentication.
+        Set <span className="font-semibold">VITE_CLERK_PUBLISHABLE_KEY</span> (or <span className="font-semibold">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</span>) to enable Clerk authentication.
       </div>
     );
   }

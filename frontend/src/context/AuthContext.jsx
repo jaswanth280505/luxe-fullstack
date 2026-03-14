@@ -1,10 +1,10 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { authApi } from '../services/api';
 import toast from 'react-hot-toast';
-import { consumePendingAccountType, getClerkInstance } from '../utils/clerkClient';
+import { consumePendingAccountType, getClerkInstance, getClerkPublishableKey } from '../utils/clerkClient';
 
 const AuthContext = createContext(null);
-const hasClerk = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+const hasClerk = Boolean(getClerkPublishableKey());
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
