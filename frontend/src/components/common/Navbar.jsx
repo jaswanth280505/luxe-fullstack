@@ -42,13 +42,20 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-8">
-            {['/', '/products', '/products?category=Fashion', '/products?category=Electronics'].map((path, i) => {
-              const labels = ['Home', 'All Products', 'Fashion', 'Electronics'];
+            {[
+              { to: '/', label: 'Home' },
+              { to: '/products', label: 'All Products' },
+              { to: '/products?category=Fashion', label: 'Fashion' },
+              { to: '/products?category=Electronics', label: 'Electronics' },
+            ].map(({ to, label }) => {
+              const [navPath, navQuery] = to.split('?');
+              const isActive = navQuery
+                ? location.pathname === navPath && location.search === `?${navQuery}`
+                : location.pathname === navPath && !location.search.includes('category=');
               return (
-                <Link key={i} to={path}
-                  className={`font-sans text-xs tracking-widest uppercase transition-colors duration-200 
-                    ${location.pathname === path.split('?')[0] && !path.includes('?') ? navActive : navText}`}>
-                  {labels[i]}
+                <Link key={to} to={to}
+                  className={`font-sans text-xs tracking-widest uppercase transition-colors duration-200 ${isActive ? navActive : navText}`}>
+                  {label}
                 </Link>
               );
             })}
