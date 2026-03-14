@@ -153,7 +153,8 @@ export function RegisterPage() {
       });
       navigate(getPostLoginRoute(user));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed');
+      const apiMessage = err.response?.data?.message || err.response?.data?.error || err.message;
+      toast.error(apiMessage || 'Registration failed');
     } finally {
       setLoading(false);
     }

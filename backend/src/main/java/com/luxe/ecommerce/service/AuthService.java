@@ -9,6 +9,7 @@ import com.luxe.ecommerce.repository.SellerProfileRepository;
 import com.luxe.ecommerce.repository.UserRepository;
 import com.luxe.ecommerce.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,26 +33,38 @@ public class AuthService {
 
     @Transactional
     public AuthDto.AuthResponse register(AuthDto.RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String normalizedEmail = request.getEmail() == null ? "" : request.getEmail().trim().toLowerCase();
+        String normalizedFullName = request.getFullName() == null ? "" : request.getFullName().trim();
+
+        if (normalizedEmail.isBlank() || normalizedFullName.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Full name and email are required");
+        }
+
+        if (userRepository.existsByEmail(normalizedEmail)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
         }
 
         Role role = resolveRequestedRole(request.getAccountType());
-        User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .fullName(request.getFullName())
-                .phone(request.getPhone())
-                .role(role)
-                .enabled(true)
-                .build();
-        userRepository.save(user);
+        try {
+            User user = User.builder()
+                    .email(normalizedEmail)
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .fullName(normalizedFullName)
+                    .phone(request.getPhone())
+                    .role(role)
+                    .enabled(true)
+                    .build();
+            userRepository.save(user);
 
-        if (role == Role.SELLER) {
-            createSellerProfile(user);
+            if (role == Role.SELLER) {
+                createSellerProfile(user);
+            }
+
+            return buildAuthResponse(user);
+        } catch (DataIntegrityViolationException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Account already exists or profile data is invalid", ex);
         }
-
-        return buildAuthResponse(user);
     }
 
     public AuthDto.AuthResponse login(AuthDto.LoginRequest request) {
