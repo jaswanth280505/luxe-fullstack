@@ -56,37 +56,51 @@ luxe-fullstack/
 
 ## Architecture, UML, and Workflow Diagrams
 
-GitHub renders Mermaid blocks directly, so the diagrams below can be viewed in the repository without extra tooling.
+The structural UML diagrams below use PlantUML and are embedded as rendered SVGs in the README. The sequence and workflow diagrams remain in Mermaid for direct GitHub rendering.
 
-### 1. System Component View
+### 1. Structural Component Diagram
 
-```mermaid
-flowchart LR
-    User[Customer or Admin] --> Browser[Browser]
+![PlantUML structural component diagram](https://www.plantuml.com/plantuml/svg/NL91JiCm4Bpx5QkSGAZY1wXjf4eWa4eZk007axZfgeuTsHlQ2l5trdRI6YxDpCwkFJlkt9DqD7HQQBKb80iEsnr1WqxLXDO8lqVJIoSxg6tNMwCCLNJI2aA3DArMGjPa7HJbuCbsoi4jB9eEJG7ImujNJXZRA2YMpXwOnVA8HI_hlMnPN3bhI9a6hZQApuCRU4LIrmLy2u2tDVVuZp0OKIWj1jgLOUP8KSXua4jUAvSp7gUFQ7bcVG-bHbuf7T4ZQuqa-IazUzAsbhhYtVZEw7h4ukVYUyaWsgvwXwQ5fRKqkQvKFJYa4z-xnVRTF1mek5oX9kNYZLD7TCpkdDLQkRHfnjDXxWlhCOM9166ZUkkHdU4evWMsUjddwLGzFyP58XBXRM0skpk_nlYDjHHq_8qyp_TIpMFDEj84nvdfvzh_lYbLrXAVGfb0kYcB8yFZn1Z716BrJmuvYMgAOCvln__-Nm00)
 
-    subgraph Frontend[React frontend]
-        Pages[Pages and routes]
-        Context[AuthContext and CartContext]
-        Api[Axios API client]
-        Storage[(localStorage)]
-        Pages --> Context --> Api
-        Context <--> Storage
-    end
+<details>
+<summary>PlantUML source</summary>
 
-    subgraph Backend[Spring Boot backend]
-        Security[SecurityConfig and JwtAuthFilter]
-        Controllers[REST controllers]
-        Services[Business services]
-        Repositories[Spring Data repositories]
-        Security --> Controllers --> Services --> Repositories
-    end
-
-    DB[(MySQL)]
-
-    Browser --> Pages
-    Api --> Security
-    Repositories --> DB
+```plantuml
+@startuml
+left to right direction
+skinparam componentStyle rectangle
+actor "Customer / Admin" as User
+node "Browser" as Browser
+package "Frontend (React + Vite)" {
+  [Pages] as Pages
+  [AuthContext] as AuthContext
+  [CartContext] as CartContext
+  [Axios API Client] as Api
+  database "localStorage" as Storage
+}
+package "Backend (Spring Boot)" {
+  [SecurityConfig\nJwtAuthFilter] as Security
+  [Controllers] as Controllers
+  [Services] as Services
+  [Repositories] as Repositories
+}
+database "MySQL" as MySQL
+User --> Browser
+Browser --> Pages
+Pages --> AuthContext
+Pages --> CartContext
+AuthContext --> Api
+CartContext --> Api
+AuthContext --> Storage
+Api --> Security
+Security --> Controllers
+Controllers --> Services
+Services --> Repositories
+Repositories --> MySQL
+@enduml
 ```
+
+</details>
 
 ### 2. Use Case Diagram
 
@@ -122,92 +136,101 @@ flowchart LR
     Admin --> UC10
 ```
 
-### 3. Domain Model Class Diagram
+### 3. Structural Domain Class Diagram
 
-```mermaid
-classDiagram
-    class User {
-        +Long id
-        +String email
-        +String password
-        +String fullName
-        +String phone
-        +String address
-        +Role role
-        +boolean enabled
-        +LocalDateTime createdAt
-        +LocalDateTime updatedAt
-    }
+![PlantUML structural domain class diagram](https://www.plantuml.com/plantuml/svg/hLHDZzem4BtdLrWSA-rgzvf3jIcXRIJ88YYzE_OqMCHsQeyNqQh_lHF3WabPgL9xodmyZz-ypFZ98tSOT9TjbGIc0RTM-iplbEcvuvg9ZdjV83hL18HAMBDMFu0zP1cOeDdATi1-PenjrhCLVOfoKTNPhrFssKbmQ-GOV0GjPtLPrP_8cZxN7wlLObQIlVvSBPVHAcVpwkji5UrfKKzdypdPL2soO1iFBjPHCcTpQreoGNFLvMnD1AFV4t1ldKn2tqBNrLn3YjfQa_fSIWVU9n57ZUMnlU4ImviEg6PZAS0DXOG3ZY0B79W8tfNaVL5wG8TUtawT6rawAuF0SI_ccgG4BvpgKLcJKdTA4Eg3QaiGIlEEOjQfLXdUBM_aF5gnorbb45fm0tEYqrftI6esZfjKCRyBYKSAcqhp5ZOkLPeBL2-GQk8uKYfdfGrDrCt1YuBzr0Q3Lmp-WtQHq5X0DMPvFZMbAQyGzFZ4zy0DAZnSw9sFnE4Tuz4Yxmfzx6Yayp3cUJhpGtIh-fwO57yCMCyF6WmkuiObSNHSqFQrTT0Dk2JnJwf5LdydmAqHepfn-UxktXztuYZEuARzHipaSK89DdcultytkGYVCxitDo77MZdhEox0Pw_BSGsw-kqvs_AtWCc5oj2mEpoHVOKzNYuzuUXHGvhnjogcq3uuGNU3P4JW2Ooaf_Ct)
 
-    class Product {
-        +Long id
-        +String name
-        +String description
-        +BigDecimal price
-        +BigDecimal originalPrice
-        +Integer stock
-        +String category
-        +String brand
-        +String sku
-        +String mainImageUrl
-        +boolean active
-        +Double rating
-        +Integer reviewCount
-        +LocalDateTime createdAt
-        +LocalDateTime updatedAt
-    }
+<details>
+<summary>PlantUML source</summary>
 
-    class ProductImage {
-        +Long id
-        +String imageUrl
-    }
+```plantuml
+@startuml
+hide methods
+skinparam classAttributeIconSize 0
 
-    class CartItem {
-        +Long id
-        +Integer quantity
-    }
+enum Role {
+  USER
+  ADMIN
+}
 
-    class Order {
-        +Long id
-        +BigDecimal totalAmount
-        +OrderStatus status
-        +String shippingAddress
-        +String paymentMethod
-        +String trackingNumber
-        +LocalDateTime createdAt
-        +LocalDateTime updatedAt
-    }
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
 
-    class OrderItem {
-        +Long id
-        +Integer quantity
-        +BigDecimal price
-    }
+class User {
+  id: Long
+  email: String
+  password: String
+  fullName: String
+  phone: String
+  address: String
+  role: Role
+  enabled: boolean
+  createdAt: LocalDateTime
+  updatedAt: LocalDateTime
+}
 
-    class Role {
-        <<enumeration>>
-        USER
-        ADMIN
-    }
+class Product {
+  id: Long
+  name: String
+  description: String
+  price: BigDecimal
+  originalPrice: BigDecimal
+  stock: Integer
+  category: String
+  brand: String
+  sku: String
+  mainImageUrl: String
+  active: boolean
+  rating: Double
+  reviewCount: Integer
+  createdAt: LocalDateTime
+  updatedAt: LocalDateTime
+}
 
-    class OrderStatus {
-        <<enumeration>>
-        PENDING
-        CONFIRMED
-        SHIPPED
-        DELIVERED
-        CANCELLED
-    }
+class ProductImage {
+  id: Long
+  imageUrl: String
+}
 
-    User --> Role
-    Order --> OrderStatus
-    User "1" --> "*" CartItem : owns
-    User "1" --> "*" Order : places
-    Product "1" --> "*" ProductImage : has
-    Product "1" --> "*" CartItem : referenced by
-    Order "1" --> "*" OrderItem : contains
-    Product "1" --> "*" OrderItem : purchased as
+class CartItem {
+  id: Long
+  quantity: Integer
+}
+
+class Order {
+  id: Long
+  totalAmount: BigDecimal
+  status: OrderStatus
+  shippingAddress: String
+  paymentMethod: String
+  trackingNumber: String
+  createdAt: LocalDateTime
+  updatedAt: LocalDateTime
+}
+
+class OrderItem {
+  id: Long
+  quantity: Integer
+  price: BigDecimal
+}
+
+User --> Role
+Order --> OrderStatus
+User "1" -- "0..*" CartItem : owns
+User "1" -- "0..*" Order : places
+Product "1" -- "0..*" ProductImage : has
+Product "1" -- "0..*" CartItem : in cart
+Order "1" -- "1..*" OrderItem : contains
+Product "1" -- "0..*" OrderItem : purchased as
+@enduml
 ```
+
+</details>
 
 ### 4. Authentication Sequence Diagram
 
@@ -355,20 +378,40 @@ flowchart LR
     ProdDeploy --> Railway[Railway backend]
 ```
 
-### 10. Deployment View
+### 10. Structural Deployment Diagram
 
-```mermaid
-flowchart LR
-    Developer[Developer pushes code] --> GitHub[GitHub repository]
-    GitHub --> Actions[GitHub Actions]
-    Actions --> Vercel[Vercel]
-    Actions --> Railway[Railway]
+![PlantUML structural deployment diagram](https://www.plantuml.com/plantuml/svg/NP91JyCm38Nl-HNMxjFkEw1rGZ0ca4exSKzRTuiMwYZ9g2h4VyTDlR9nYkFtnNf-xIP4xUFbqogBROH8uCtn5A4n7kjeg5EwZkJX4R_GaaClz_94Rhnrr20idatSNIeeq54mB0yBq06cxZsIfQ4XwL8BiFNK1_H9aLgK3_GrsYHC9Nmh0BPjMZO3YmB7eyopX3nvwY9sJUQS-f49XJQsrvChgV_DA9qttH6sH16o_6LoeUlpFAZHKLSw_0s3jw5yVqrWgjGS4IoN3x8yhC5Tmad9RHHaQrOYHtral2T_RYrlhAxQoCcgQsZGMHgWbRtkeAkNcQecpqg-JuAkQSgPUZSfyMDBkW7DUzwsqzCv0gPsXqDUmaexesxw8vO2O6AVPx22COmDg_nN_G80)
 
-    Shopper[End user] --> Web[Browser]
-    Web --> Vercel
-    Vercel --> Api[Spring Boot API on Railway]
-    Api --> MySQL[(Railway MySQL)]
+<details>
+<summary>PlantUML source</summary>
+
+```plantuml
+@startuml
+left to right direction
+actor Developer
+actor Shopper
+node "GitHub Repository" as GitHub
+node "GitHub Actions" as Actions
+node "Browser" as Browser
+node "Vercel" as Vercel {
+  artifact "React SPA" as FrontendApp
+}
+node "Railway" as Railway {
+  artifact "Spring Boot API" as BackendApp
+}
+database "Railway MySQL" as MySQL
+Developer --> GitHub : push
+GitHub --> Actions : trigger workflows
+Actions --> Vercel : deploy frontend
+Actions --> Railway : deploy backend
+Shopper --> Browser
+Browser --> FrontendApp : load app
+FrontendApp --> BackendApp : HTTPS /api
+BackendApp --> MySQL : JPA / SQL
+@enduml
 ```
+
+</details>
 
 ## Key Business Rules Captured in the Code
 
