@@ -48,18 +48,17 @@ git checkout -b staging && git push -u origin staging
 In GitHub: **Settings → Branches → Add rule**
 
 For `main`:
-- ✅ Require pull request reviews: **2 approvals**
+- ✅ Require pull request reviews
 - ✅ Require status checks: `backend-ci`, `frontend-ci`, `docker-validate`
 - ✅ Require branches to be up to date
-- ✅ Restrict pushes — only Member 4 (PM) can push directly
 - ✅ Require linear history
 
 For `staging`:
-- ✅ Require pull request reviews: **1 approval**
+- ✅ Require pull request reviews
 - ✅ Require status checks to pass
 
 For `dev`:
-- ✅ Require pull request reviews: **1 approval**
+- ✅ Require pull request reviews
 
 ### STEP 4 — Set Up Railway (Backend + Database)
 
@@ -132,22 +131,11 @@ VERCEL_PROJECT_ID             ← From Vercel project settings
 SONAR_TOKEN                   ← From SonarCloud (optional)
 ```
 
-### STEP 7 — Add Team Members to GitHub
 
-**GitHub → Settings → Collaborators → Add people:**
-- Member 1: Role = `Write`
-- Member 2: Role = `Write`  
-- Member 3: Role = `Maintain`
-- Member 4: Role = `Admin`
-
-**Update `.github/CODEOWNERS`** with their real GitHub usernames.
 
 ### STEP 8 — First Deploy
 
-```bash
-# Member 4: Trigger first production deploy
-git push origin main
-```
+
 
 GitHub Actions will:
 1. Run all CI tests
@@ -159,31 +147,7 @@ GitHub Actions will:
 
 ---
 
-## 🔄 Daily Workflow for 4-Member Team
 
-```
-Member 1/2/3:
-  git checkout dev
-  git pull origin dev
-  git checkout -b feature/my-feature
-  # ... develop ...
-  git push origin feature/my-feature
-  # Open PR → dev on GitHub
-
-Member 3 (DevOps): Reviews and merges to dev
-  → CI runs automatically (tests + build)
-
-Member 3: When dev is stable, open PR dev → staging
-  → Staging deploys automatically
-  → Integration tests run
-
-Member 4 (PM): Reviews staging, opens PR staging → main
-  → Requires 2 approvals (Member 3 + Member 4)
-  → Production deploys automatically
-  → GitHub Release created
-```
-
----
 
 ## 📈 Scaling for Lakhs of Users
 
